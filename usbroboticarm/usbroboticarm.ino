@@ -1,23 +1,11 @@
 /*
     Modbus slave example.
-
-    Control and Read Arduino I/Os using Modbus serial connection.
-    
-    This sketch show how to use the callback vector for reading and
-    controleing Arduino I/Os.
     
     * Control digital pins mode using holding registers 0 .. 13.
     * Controls digital output pins as modbus coils.
     * Reads digital inputs state as discreet inputs.
     * Reads analog inputs as input registers.
     * Write and Read EEPROM as holding registers.
-
-    The circuit: ( see: ./extras/ModbusSetch.pdf )
-    * An Arduino.
-    * 2 x LEDs, with 220 ohm resistors in series.
-    * A switch connected to a digital input pin.
-    * A potentiometer connected to an analog input pin.
-    * A RS485 module (Optional) connected to RX/TX and a digital control pin.
 
     Created 8 12 2015
     By Yaacov Zamir
@@ -26,7 +14,6 @@
 
 */
 
-#include <EEPROM.h>
 #include <ModbusSlave.h>
 
 /* slave id = 1, control-pin = 8, baud = 9600
@@ -34,6 +21,8 @@
 #define SLAVE_ID 1
 #define CTRL_PIN 99
 #define BAUDRATE 115200
+
+uint16_t modbusreg[50];
 
 /**
  *  Modbus object declaration.
@@ -121,7 +110,7 @@ uint8_t readMemory(uint8_t fc, uint16_t address, uint16_t length) {
     
     // read program memory.
     for (int i = 0; i < length; i++) {
-        EEPROM.get((address + i) * 2, value);
+        value = modbusreg[address + i];
         
         // write uint16_t value to the response buffer.
         slave.writeRegisterToBuffer(i, value);
@@ -170,7 +159,7 @@ uint8_t writeMemory(uint8_t fc, uint16_t address, uint16_t length) {
         // get uint16_t value from the request buffer.
         value = slave.readRegisterFromBuffer(i);
         
-        EEPROM.put(registerIndex * 2, value);
+        modbusreg[registerIndex] = value;
     }
 
     return STATUS_OK;
