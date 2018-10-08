@@ -32,11 +32,8 @@
 /* slave id = 1, control-pin = 8, baud = 9600
  */
 #define SLAVE_ID 1
-#define CTRL_PIN 8
-#define BAUDRATE 9600
-
-#define PIN_MODE_INPUT 0
-#define PIN_MODE_OUTPUT 1
+#define CTRL_PIN 99
+#define BAUDRATE 115200
 
 /**
  *  Modbus object declaration.
@@ -44,28 +41,6 @@
 Modbus slave(SLAVE_ID, CTRL_PIN);
 
 void setup() {
-    uint16_t pinIndex;
-    uint16_t eepromValue;
-    
-    /* set pins for mode.
-     */
-    for (pinIndex = 3; pinIndex < 14; pinIndex++) {
-        // get one 16bit register from eeprom
-        EEPROM.get(pinIndex * 2, eepromValue);
-        
-        // use the register value to set pin mode.
-        switch (eepromValue) {
-            case PIN_MODE_INPUT:
-                pinMode(pinIndex, INPUT);
-                break;
-            case PIN_MODE_OUTPUT:
-                pinMode(pinIndex, OUTPUT);
-                break;
-        }
-    }
-    
-    // RS485 control pin must be output
-    pinMode(CTRL_PIN, OUTPUT);
     
     /* register handler functions.
      * into the modbus slave callback vector.
@@ -196,21 +171,6 @@ uint8_t writeMemory(uint8_t fc, uint16_t address, uint16_t length) {
         value = slave.readRegisterFromBuffer(i);
         
         EEPROM.put(registerIndex * 2, value);
-        
-        /* if this register sets digital pins mode, 
-         * set the digital pins mode.
-         */
-        if (registerIndex > 2 && registerIndex < 14 && registerIndex != CTRL_PIN) {
-            // use the register value to set pin mode.
-            switch (value) {
-                case PIN_MODE_INPUT:
-                    pinMode(registerIndex, INPUT);
-                    break;
-                case PIN_MODE_OUTPUT:
-                    pinMode(registerIndex, OUTPUT);
-                    break;
-            }
-        }
     }
 
     return STATUS_OK;
