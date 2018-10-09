@@ -23,6 +23,9 @@
 #define CTRL_PIN 0        // do not use control-pin for RS485 adaptor
 #define BAUDRATE 115200
 
+#define openclamp 22
+#define closeclamp 23
+
 uint16_t modbusreg[10];
 AF_DCMotor motor1(1, MOTOR12_64KHZ); // create motor #1, 64KHz pwm
 AF_DCMotor motor2(2, MOTOR12_64KHZ); // create motor #2, 64KHz pwm
@@ -34,6 +37,9 @@ AF_DCMotor motor4(4, MOTOR34_64KHZ); // create motor #4, 64KHz pwm
  *  Modbus object declaration.
  */
 Modbus slave(SLAVE_ID, CTRL_PIN);
+
+unsigned long previousMillis = 0;
+const long interval = 1000;
 
 void setup() {
     
@@ -53,6 +59,11 @@ void setup() {
     motor2.setSpeed(200);     // set the speed to 200/255
     motor3.setSpeed(200);     // set the speed to 200/255
     motor4.setSpeed(200);     // set the speed to 200/255
+
+    pinMode(openclamp, OUTPUT);
+    pinMode(closeclamp, OUTPUT);
+    digitalWrite(openclamp, HIGH); 
+    digitalWrite(closeclamp, HIGH);
 }
 
 void loop() {
@@ -113,6 +124,27 @@ void loop() {
     }
     else{
       motor4.run(RELEASE);  //deadband -10..10
+    }
+
+    //motor 5 control
+    if (modbusreg[4] != 0){
+      if(modbusreg[4] == 1 && !modbusreg[5]){  //close
+        digitalWrite(openclamp, HIGH);
+        digitalWrite(closeclamp, LOW);
+        modbusreg[5] = 1;
+        previousMillis = millis();
+      }
+      if(modbusreg[4] == -1 && modbusreg[5]){  //close
+        digitalWrite(openclamp, LOW);
+        digitalWrite(closeclamp, HIGH);
+        modbusreg[5] = 0;
+        previousMillis = millis();
+      }
+      if(millis()-previousMillis>=interval){
+        modbusreg[4] = 0;
+        digitalWrite(openclamp, HIGH);
+        digitalWrite(closeclamp, HIGH);
+      }
     }
 }
 
