@@ -5,7 +5,6 @@
     * Controls digital output pins as modbus coils.
     * Reads digital inputs state as discreet inputs.
     * Reads analog inputs as input registers.
-    * Write and Read EEPROM as holding registers.
 
     Created 8 12 2015
     By Yaacov Zamir
@@ -17,13 +16,12 @@
 #include <ModbusSlave.h>
 #include <AFMotor.h>
 
-/* slave id = 1, control-pin = 8, baud = 9600
- */
+/* slave id = 1, control-pin = 0, baud = 115200 */
 #define SLAVE_ID 1
-#define CTRL_PIN 99
+#define CTRL_PIN 0        // do not use control-pin for RS485 adaptor
 #define BAUDRATE 115200
 
-uint16_t modbusreg[50];
+uint16_t modbusreg[10];
 AF_DCMotor motor1(1, MOTOR12_64KHZ); // create motor #1, 64KHz pwm
 AF_DCMotor motor2(2, MOTOR12_64KHZ); // create motor #2, 64KHz pwm
 AF_DCMotor motor3(3, MOTOR34_64KHZ); // create motor #3, 64KHz pwm
