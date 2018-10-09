@@ -11,6 +11,8 @@
 
     https://github.com/yaacov/ArduinoModbusSlave
 
+    https://github.com/adafruit/Adafruit-Motor-Shield-library/
+
 */
 
 #include <ModbusSlave.h>
