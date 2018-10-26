@@ -23,14 +23,16 @@
 #define CTRL_PIN 0        // do not use control-pin for RS485 adaptor
 #define BAUDRATE 115200
 
-#define openclamp 22
-#define closeclamp 23
+// #define openclamp 22
+// #define closeclamp 23
 
-uint16_t modbusreg[10];
-AF_DCMotor motor1(1, MOTOR12_64KHZ); // create motor #1, 64KHz pwm
-AF_DCMotor motor2(2, MOTOR12_64KHZ); // create motor #2, 64KHz pwm
-AF_DCMotor motor3(3, MOTOR34_64KHZ); // create motor #3, 64KHz pwm
-AF_DCMotor motor4(4, MOTOR34_64KHZ); // create motor #4, 64KHz pwm
+#define basespeed 100
+
+int16_t modbusreg[10];
+AF_DCMotor motor1(1, MOTOR12_8KHZ); // create motor #1, 64KHz pwm
+AF_DCMotor motor2(2, MOTOR12_8KHZ); // create motor #2, 64KHz pwm
+AF_DCMotor motor3(3, MOTOR34_8KHZ); // create motor #3, 64KHz pwm
+AF_DCMotor motor4(4, MOTOR34_8KHZ); // create motor #4, 64KHz pwm
 
 
 /**
@@ -38,8 +40,8 @@ AF_DCMotor motor4(4, MOTOR34_64KHZ); // create motor #4, 64KHz pwm
  */
 Modbus slave(SLAVE_ID, CTRL_PIN);
 
-unsigned long previousMillis = 0;
-const long interval = 1000;
+// unsigned long previousMillis = 0;
+// const long interval = 1000;
 
 void setup() {
     
@@ -55,15 +57,15 @@ void setup() {
     Serial.begin( BAUDRATE );
     slave.begin( BAUDRATE );
 
-    motor1.setSpeed(200);     // set the speed to 200/255
-    motor2.setSpeed(200);     // set the speed to 200/255
-    motor3.setSpeed(200);     // set the speed to 200/255
-    motor4.setSpeed(200);     // set the speed to 200/255
+    motor1.setSpeed(basespeed);     // set the speed to basespeed/255
+    motor2.setSpeed(basespeed);     // set the speed to basespeed/255
+    motor3.setSpeed(basespeed);     // set the speed to basespeed/255
+    motor4.setSpeed(basespeed);     // set the speed to basespeed/255
 
-    pinMode(openclamp, OUTPUT);
-    pinMode(closeclamp, OUTPUT);
-    digitalWrite(openclamp, HIGH); 
-    digitalWrite(closeclamp, HIGH);
+//    pinMode(openclamp, OUTPUT);
+//    pinMode(closeclamp, OUTPUT);
+//    digitalWrite(openclamp, HIGH); 
+//    digitalWrite(closeclamp, HIGH);
 }
 
 void loop() {
@@ -78,11 +80,11 @@ void loop() {
     //motor 1 control
     if (modbusreg[0] >= 10){      //modbusreg value -100..100
       motor1.run(FORWARD);
-      motor1.setSpeed(200+modbusreg[0]/2);
+      motor1.setSpeed(basespeed+modbusreg[0]);
     }
     else if (modbusreg[0] <= -10){
       motor1.run(BACKWARD);
-      motor1.setSpeed(200-modbusreg[0]/2);
+      motor1.setSpeed(basespeed-modbusreg[0]);
     }
     else{
       motor1.run(RELEASE);  //deadband -10..10
@@ -91,11 +93,11 @@ void loop() {
     //motor 2 control
     if (modbusreg[1] >= 10){      //modbusreg value -100..100
       motor2.run(FORWARD);
-      motor2.setSpeed(200+modbusreg[1]/2);
+      motor2.setSpeed(basespeed+modbusreg[1]);
     }
     else if (modbusreg[1] <= -10){
       motor2.run(BACKWARD);
-      motor2.setSpeed(200-modbusreg[1]/2);
+      motor2.setSpeed(basespeed-modbusreg[1]);
     }
     else{
       motor2.run(RELEASE);  //deadband -10..10
@@ -104,11 +106,11 @@ void loop() {
     //motor 3 control
     if (modbusreg[2] >= 10){      //modbusreg value -100..100
       motor3.run(FORWARD);
-      motor3.setSpeed(200+modbusreg[2]/2);
+      motor3.setSpeed(basespeed+modbusreg[2]);
     }
     else if (modbusreg[2] <= -10){
       motor3.run(BACKWARD);
-      motor3.setSpeed(200-modbusreg[2]/2);
+      motor3.setSpeed(basespeed-modbusreg[2]);
     }
     else{
       motor3.run(RELEASE);  //deadband -10..10
@@ -116,36 +118,36 @@ void loop() {
     //motor 4 control
     if (modbusreg[3] >= 10){      //modbusreg value -100..100
       motor4.run(FORWARD);
-      motor4.setSpeed(200+modbusreg[3]/2);
+      motor4.setSpeed(basespeed+modbusreg[3]);
     }
     else if (modbusreg[3] <= -10){
       motor4.run(BACKWARD);
-      motor4.setSpeed(200-modbusreg[3]/2);
+      motor4.setSpeed(basespeed-modbusreg[3]);
     }
     else{
       motor4.run(RELEASE);  //deadband -10..10
     }
 
-    //motor 5 control
-    if (modbusreg[4] != 0){
-      if(modbusreg[4] == 1 && !modbusreg[5]){  //close
-        digitalWrite(openclamp, HIGH);
-        digitalWrite(closeclamp, LOW);
-        modbusreg[5] = 1;
-        previousMillis = millis();
-      }
-      if(modbusreg[4] == -1 && modbusreg[5]){  //close
-        digitalWrite(openclamp, LOW);
-        digitalWrite(closeclamp, HIGH);
-        modbusreg[5] = 0;
-        previousMillis = millis();
-      }
-      if(millis()-previousMillis>=interval){
-        modbusreg[4] = 0;
-        digitalWrite(openclamp, HIGH);
-        digitalWrite(closeclamp, HIGH);
-      }
-    }
+//    //motor 5 control
+//    if (modbusreg[4] != 0){
+//      if(modbusreg[4] == 1 && !modbusreg[5]){  //close
+//        digitalWrite(openclamp, HIGH);
+//        digitalWrite(closeclamp, LOW);
+//        modbusreg[5] = 1;
+//        previousMillis = millis();
+//      }
+//      if(modbusreg[4] == -1 && modbusreg[5]){  //close
+//        digitalWrite(openclamp, LOW);
+//        digitalWrite(closeclamp, HIGH);
+//        modbusreg[5] = 0;
+//        previousMillis = millis();
+//      }
+//      if(millis()-previousMillis>=interval){
+//        modbusreg[4] = 0;
+//        digitalWrite(openclamp, HIGH);
+//        digitalWrite(closeclamp, HIGH);
+//      }
+//    }
 }
 
 /**
